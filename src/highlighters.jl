@@ -22,7 +22,7 @@ hl_low = Highlighter(
 # hide low values
 hl_hide = Highlighter(
         (data, i, j) -> (data[i,j] < 0.3 && data[i,j] >= -0.3),
-        crayon"black"
+        crayon"dark_gray"
     );
 # negative
 hl_topneg = Highlighter(

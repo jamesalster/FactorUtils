@@ -57,6 +57,7 @@ Provide a pretty representation of a `FactorResults` holding a `PCA`.
 Kwargs are passed to `PrettyTables.pretty_table()`.
 """
 function pretty(io::IO, fa::FactorResults{<:PCA}; nfactors=5, kwargs...)
+    println(io, crayon"bold", "PCA results, showing the first $nfactors dimensions:\n")
     ## Loadings
     loads = loadings(fa)[:,1:nfactors]
     arr = hcat(loads, unique_variance(fa))
@@ -84,6 +85,7 @@ Provide a pretty representation of a `FactorResults` holding a `FactorAnalysis`.
 Kwargs are passed to `PrettyTables.pretty_table()`.
 """
 function pretty(io::IO, fa::FactorResults{<:FactorAnalysis}; kwargs...)
+    println(io, crayon"bold", "Factor Analysis results:\n")
     ## Loadings
     loads = loadings(fa)
     arr = hcat(loads, unique_variance(fa))
