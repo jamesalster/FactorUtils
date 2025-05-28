@@ -48,16 +48,17 @@ function pretty(io::IO, arr::NamedArray; topcorner=nothing, highlighters=factor_
 end
 
 """
-    pretty(fa::FactorResults{<:PCA}; kwargs...)
+    pretty(fa::FactorResults{<:PCA}; nfactors=5, kwargs...)
 
 Provide a pretty representation of a `FactorResults` holding a `PCA`. 
     Shows a loadings table, with unique variance, and the variance explained on each factor.
+    Shows only up to `nfactors` factors, default is 5.
 
 Kwargs are passed to `PrettyTables.pretty_table()`.
 """
-function pretty(io::IO, fa::FactorResults{<:PCA}; kwargs...)
+function pretty(io::IO, fa::FactorResults{<:PCA}; nfactors=5, kwargs...)
     ## Loadings
-    loads = loadings(fa)
+    loads = loadings(fa)[:,1:nfactors]
     arr = hcat(loads, unique_variance(fa))
     setdimnames!(arr, [:variable, :factor])
     setnames!(arr, vcat(names(loads, 2)..., "Unique Var"), 2)
@@ -66,7 +67,7 @@ function pretty(io::IO, fa::FactorResults{<:PCA}; kwargs...)
     ## Variance explained
     eigs = eigvals(fa)
     eig_pct = eigs ./ sum(eigs)
-    arr = hcat(eigs, eig_pct, cumsum(eig_pct, dims = 1))
+    arr = hcat(eigs[1:nfactors], eig_pct[1:nfactors], cumsum(eig_pct[1:nfactors], dims = 1))
     setdimnames!(arr, [:factor, :statistic])
     setnames!(arr, ["Eigenvalue", "% of Variance", "Cumulative % of Variance"], 2)
     println(io, crayon"bold", "Variance Explained")

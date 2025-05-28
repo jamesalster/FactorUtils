@@ -32,19 +32,19 @@ function prep_data(df::DataFrame)::DataFrame
 end
 
 """
-    pca(df::DataFrame, nfactors::Int; scale=true)
+    pca(df::DataFrame; scale=true)
 
 Perform a principal component analysis, with scaling if scale=true. 
     A wrapper around MultivariateStats' `fit(PCA, X)` to return a `FactorResults` object.
 
 The dataframe should be observations * variables (the transpose of the matrix taken by MultivariateStats)
 """
-function pca(df::DataFrame, nfactors::Int; scale=true)::FactorResults
+function pca(df::DataFrame; scale=true)::FactorResults
     df_fit = prep_data(df)
     nm = names(df_fit) #get names
     mat = Matrix(df_fit)
     X = scale ? mapslices(normalise, mat; dims = 1) : mat
-    pca = fit(PCA, X'; maxoutdim=nfactors)
+    pca = fit(PCA, X')
     fa_obj = FactorResults(pca, X', nm)
     return fa_obj
 end
