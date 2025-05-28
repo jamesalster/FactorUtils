@@ -21,20 +21,20 @@ mutable struct FactorResults{T<:MultivariateStats.AbstractDimensionalityReductio
     nm::Vector{String} 
 end
 
+#extend FactorAnalysis and PCA methods
+Base.size(fa::FactorResults) = size(fa.fa)
+Base.size(fa::FactorResults, i) = size(fa.fa, i)
+
 function Base.show(io::IO, obj::FactorResults)
-    n_vars = length(obj.nm)
-    n_obs = size(obj, 1)
-    n_factors = size(obj, 2)  # assuming loadings matrix W exists
+    n_vars = size(obj.X, 1)
+    n_obs = size(obj.X, 2)
+    n_factors = size(obj, 2)
     
     print(io, "FactorResults with $n_factors factors")
     print(io, "\n  Variables: $n_vars")
     print(io, "\n  Observations: $n_obs")
     print(io, "\n  Method: $(typeof(obj.fa))")
 end
-
-#extend FactorAnalysis and PCA methods
-Base.size(fa::FactorResults) = size(fa.fa)
-Base.size(fa::FactorResults, i) = size(fa.fa, i)
 
 function FactorRotations.rotate(fa::FactorResults{T}, rot::RotationMethod; kwargs...) where {T} 
     fa_new = deepcopy(fa)
