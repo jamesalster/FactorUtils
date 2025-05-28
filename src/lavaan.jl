@@ -15,7 +15,7 @@ function efa_lavaan(df::DataFrame, nfactors::Int, rotation::String; scale=true)
     df_fit = prep_data(df)
     nm = names(df_fit) #get names
     mat = Matrix(df_fit)
-    X = scale ? mapslices(normalise, mat; dims = 1) : mat
+    X = scale ? mapslices(normalise, mat; dims=1) : mat
     #fit in lavaan
     X_df = DataFrame(X, nm) #lavaan needs df
     RCall.R"""
@@ -24,8 +24,9 @@ function efa_lavaan(df::DataFrame, nfactors::Int, rotation::String; scale=true)
         fac = lavInspect(efa_fit, "est")$lambda
         resid = lavInspect(efa_fit, "est")$theta
     """
-    fac = RCall.@rget fac; resid = diag(RCall.@rget resid)
-    mn = vec(mean(X; dims = 1))
+    fac = RCall.@rget fac;
+    resid = diag(RCall.@rget resid)
+    mn = vec(mean(X; dims=1))
     fa_obj = FactorAnalysis{eltype(fac)}(mn, fac, resid)
     return FactorResults(fa_obj, X', nm)
 end

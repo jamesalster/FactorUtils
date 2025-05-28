@@ -1,10 +1,9 @@
 
-
 default_options = (
-    formatters = ft_printf("%5.3f"),
-    header_crayon = crayon"black bold",
-    row_label_header_crayon = crayon"black bold",
-    crop = :horizontal
+    formatters=ft_printf("%5.3f"),
+    header_crayon=crayon"black bold",
+    row_label_header_crayon=crayon"black bold",
+    crop=:horizontal,
 )
 
 """
@@ -33,17 +32,20 @@ Will throw an error if the array `arr` does not have two dimensions.
 - kwargs: passed to `PrettyTables.pretty_table()` Note especially "crop" which is `:horizontal` by default
     but could be `:vertical` or `:none`.
 """
-function pretty(io::IO, arr::NamedArray; topcorner=nothing, highlighters=factor_highlighters, kwargs...)
+function pretty(
+    io::IO, arr::NamedArray; topcorner=nothing, highlighters=factor_highlighters, kwargs...
+)
     ndims(arr) != 2 && throw(ArgumentError("pretty() only works on 2D Arrays"))
     top_corner = isnothing(topcorner) ? join(dimnames(arr), " / ") : topcorner
     return pretty_table(
-        io, arr;
-        header = names(arr, 2),
-        row_labels = names(arr, 1),
-        row_label_column_title = top_corner,
-        highlighters = highlighters,
+        io,
+        arr;
+        header=names(arr, 2),
+        row_labels=names(arr, 1),
+        row_label_column_title=top_corner,
+        highlighters=highlighters,
         default_options...,
-        kwargs...
+        kwargs...,
     )
 end
 
@@ -59,20 +61,20 @@ Kwargs are passed to `PrettyTables.pretty_table()`.
 function pretty(io::IO, fa::FactorResults{<:PCA}; nfactors=5, kwargs...)
     println(io, crayon"bold", "PCA results, showing the first $nfactors dimensions:\n")
     ## Loadings
-    loads = loadings(fa)[:,1:nfactors]
+    loads = loadings(fa)[:, 1:nfactors]
     arr = hcat(loads, unique_variance(fa))
     setdimnames!(arr, [:variable, :factor])
     setnames!(arr, vcat(names(loads, 2)..., "Unique Var"), 2)
     println(io, crayon"bold", "Factor Loadings")
-    pretty(io, arr; topcorner = "Variable", kwargs...)
+    pretty(io, arr; topcorner="Variable", kwargs...)
     ## Variance explained
     eigs = eigvals(fa)
     eig_pct = eigs ./ sum(eigs)
-    arr = hcat(eigs[1:nfactors], eig_pct[1:nfactors], cumsum(eig_pct[1:nfactors], dims = 1))
+    arr = hcat(eigs[1:nfactors], eig_pct[1:nfactors], cumsum(eig_pct[1:nfactors]; dims=1))
     setdimnames!(arr, [:factor, :statistic])
     setnames!(arr, ["Eigenvalue", "% of Variance", "Cumulative % of Variance"], 2)
     println(io, crayon"bold", "Variance Explained")
-    pretty(io, arr; topcorner = "Factor", highlighters=(), kwargs...)
+    pretty(io, arr; topcorner="Factor", highlighters=(), kwargs...)
 end
 
 """
@@ -92,16 +94,19 @@ function pretty(io::IO, fa::FactorResults{<:FactorAnalysis}; kwargs...)
     setdimnames!(arr, [:variable, :factor])
     setnames!(arr, vcat(names(loads, 2)..., "Unique Var"), 2)
     println(io, crayon"bold", "Factor Loadings")
-    pretty(io, arr; topcorner = "Variable", kwargs...)
+    pretty(io, arr; topcorner="Variable", kwargs...)
     ## Latent variable correlations
     println(io, crayon"bold", "Empirical Latent Variable Correlations")
-    pretty(io,
+    pretty(
+        io,
         NamedArray(
             cor(predict(fa));
-            dimnames = (:x, :y),
-            names = (["f$i" for i in 1:size(fa, 2)],["f$i" for i in 1:size(fa, 2)])),
-        topcorner = "Correlations", 
-        kwargs...)
+            dimnames=(:x, :y),
+            names=(["f$i" for i in 1:size(fa, 2)], ["f$i" for i in 1:size(fa, 2)]),
+        );
+        topcorner="Correlations",
+        kwargs...,
+    )
 end
 
 # Catch-all method for non-IO calls

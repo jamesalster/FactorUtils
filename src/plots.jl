@@ -18,12 +18,7 @@ Shows arrows pointing from the origin to each variable's position.
 - `kwargs...`: Extra plotting options like figure size
 """
 MakieCore.@recipe(BiPlotArrows, loadings, var_names) do scene
-    MakieCore.Theme(
-        dims = [1, 2],
-        max_labels = 10,
-        circle = true,
-        color = nothing
-    )
+    MakieCore.Theme(; dims=[1, 2], max_labels=10, circle=true, color=nothing)
 end
 
 function MakieCore.plot!(bp::BiPlotArrows)
@@ -33,28 +28,36 @@ function MakieCore.plot!(bp::BiPlotArrows)
     circle = bp.circle[]
     color = bp.color[]
     max_labels = first(bp.max_labels[])
-    
+
     # Unit circle
     if circle
         θ = 0:0.01:2π
-        MakieCore.lines!(bp, cos.(θ), sin.(θ), color=:gray, alpha=0.3)
+        MakieCore.lines!(bp, cos.(θ), sin.(θ); color=:gray, alpha=0.3)
     end
-    
+
     # Arrows and labels
     x, y = loadings[:, dims[1]], loadings[:, dims[2]]
-    dist = sqrt.(x.^2 .+ y.^2)
+    dist = sqrt.(x .^ 2 .+ y .^ 2)
     if isnothing(color)
-        MakieCore.arrows!(bp, zeros(length(x)), zeros(length(y)), x, y, color=dist, colormap=:heat)
+        MakieCore.arrows!(
+            bp, zeros(length(x)), zeros(length(y)), x, y; color=dist, colormap=:heat
+        )
     elseif eltype(color) <: Number
-        MakieCore.arrows!(bp, zeros(length(x)), zeros(length(y)), x, y, color=color, colormap=:heat)
+        MakieCore.arrows!(
+            bp, zeros(length(x)), zeros(length(y)), x, y; color=color, colormap=:heat
+        )
     else
-        MakieCore.arrows!(bp, zeros(length(x)), zeros(length(y)), x, y, color=color)
+        MakieCore.arrows!(bp, zeros(length(x)), zeros(length(y)), x, y; color=color)
     end
-    
+
     #crop text to only most important vars if too many
-    idx = length(dist) > max_labels ? partialsortperm(dist, 1:max_labels, rev=true) : 1:length(dist)
+    idx = if length(dist) > max_labels
+        partialsortperm(dist, 1:max_labels; rev=true)
+    else
+        1:length(dist)
+    end
     for i in idx
-        MakieCore.text!(bp, x[i], y[i], text=var_names[i], offset=(0, 5), alpha = dist[i])
+        MakieCore.text!(bp, x[i], y[i]; text=var_names[i], offset=(0, 5), alpha=dist[i])
     end
     bp
 end
@@ -80,10 +83,7 @@ Plot individual data points in principal component space.
 - `kwargs...`: Extra plotting options
 """
 MakieCore.@recipe(IndScatter, coords) do scene
-    MakieCore.Theme(
-        dims = [1, 2],
-        color = nothing
-    )
+    MakieCore.Theme(; dims=[1, 2], color=nothing)
 end
 
 function MakieCore.plot!(ip::IndScatter)
@@ -93,14 +93,23 @@ function MakieCore.plot!(ip::IndScatter)
 
     # Add dark grey lines
     # Not possible to have hlines or vlines without importing Makie
-    
+
     if isnothing(color)
-        MakieCore.scatter!(ip, coords[:, dims[1]], coords[:, dims[2]], alpha = 0.3)
+        MakieCore.scatter!(ip, coords[:, dims[1]], coords[:, dims[2]]; alpha=0.3)
     elseif eltype(color) <: Number
-        MakieCore.scatter!(ip, coords[:, dims[1]], coords[:, dims[2]], alpha = 0.3, color=color, colormap = :Spectral)
+        MakieCore.scatter!(
+            ip,
+            coords[:, dims[1]],
+            coords[:, dims[2]];
+            alpha=0.3,
+            color=color,
+            colormap=:Spectral,
+        )
         # Note: Colorbar would need to be handled at the figure level
     else
-        MakieCore.scatter!(ip, coords[:, dims[1]], coords[:, dims[2]], alpha = 0.3, color=color)
+        MakieCore.scatter!(
+            ip, coords[:, dims[1]], coords[:, dims[2]]; alpha=0.3, color=color
+        )
     end
     ip
 end
