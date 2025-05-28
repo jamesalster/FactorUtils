@@ -15,7 +15,7 @@ bfi_all = dataset("psych", "bfi")[:, 2:26]
 bfi = dropmissing(bfi_all)
 
 # Make objects from this package
-pca_fu = pca(bfi, 5)
+pca_fu = pca(bfi)
 fa_fu = fa(bfi, 5)
 
 @testset "Namespace" begin
@@ -75,7 +75,7 @@ end
         1 .- dropdims(sum(MultivariateStats.loadings(fa_ms) .^ 2; dims=2); dims=2)
 
     # now for pca
-    pca_ms = fit(PCA, bfi_mat', maxoutdim=5)
+    pca_ms = fit(PCA, bfi_mat')
 
     # object properties
     @test pca_fu isa FactorResults
@@ -89,7 +89,7 @@ end
     @test size(pca_fu) == size(pca_ms)
     @test loadings(pca_fu) ≈ MultivariateStats.loadings(pca_ms)
     @test loadings(pca_fu) isa NamedArray
-    @test size(predict(pca_fu)) == (size(bfi, 1), 5)
+    @test size(predict(pca_fu)) == (size(bfi, 1), 25)
     @test predict(pca_fu) ≈ MultivariateStats.predict(pca_ms, bfi_mat')' #nb shape
     @test projection(pca_fu) ≈ MultivariateStats.projection(pca_ms)
     @test mean(pca_fu) ≈ MultivariateStats.mean(pca_ms)
