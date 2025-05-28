@@ -77,7 +77,8 @@ ax.xlabel = "My own label..."
 # FA
 fa1 = fa(bfi, 5)
 # rotate
-efa1 = efa(fa1, Geomin()) # or rotate!(fa1, Geomin()) to do it in place
+# preferred to FactorUtils.rotate! since it uses many repeats by default
+efa1 = efa(fa1, Geomin()) 
 pretty(efa1)
 loadings(efa1)
 
