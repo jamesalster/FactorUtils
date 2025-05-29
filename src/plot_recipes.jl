@@ -72,7 +72,7 @@ Takes your already-fitted model and variable names, then makes the biplot for yo
 biplotarrows(fa::FactorResults; kwargs...) = biplotarrows(loadings(fa), fa.nm; kwargs...)
 
 """
-    indplot(coords; dims=[1,2], color=nothing, kwargs...)
+    indscatter(coords; dims=[1,2], color=nothing, kwargs...)
 
 Plot individual data points in principal component space.
 

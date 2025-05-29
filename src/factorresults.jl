@@ -166,15 +166,15 @@ function cos2_var(fa::FactorResults)
 end
 
 """
-    unique_variance(fa::FactorResults)
+    unique_variance(fa::FactorResults; nfactors=size(fa, 2))
 
-Get unique variance for variables for a factor analysis.
+Get unique variance for variables for a factor analysis across the first nfactors.
 
 This is 1 - the sum of the squared loadings across factors.
 """
-function unique_variance(fa::FactorResults)
-    vec = 1 .- dropdims(sum(loadings(fa) .^ 2; dims=2); dims=2)
-    return NamedArray(vec; dimnames=(:variable,), names=(fa.nm,))
+function unique_variance(fa::FactorResults; nfactors=size(fa, 2))
+    unique_var = vec(1 .- sum(loadings(fa)[:, 1:nfactors] .^ 2; dims=2))
+    return NamedArray(unique_var; dimnames=(:variable,), names=(fa.nm,))
 end
 
 """

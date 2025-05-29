@@ -21,7 +21,7 @@ include("highlighters.jl")
 include("pretty_printing.jl")
 include("datatransformations.jl")
 include("dataanalysis.jl")
-include("plots.jl")
+include("plot_recipes.jl")
 
 loadings = MultivariateStats.loadings
 rotate! = FactorRotations.rotate!

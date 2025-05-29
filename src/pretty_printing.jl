@@ -62,11 +62,8 @@ function pretty(io::IO, fa::FactorResults{<:PCA}; nfactors=5, kwargs...)
     println(io, crayon"bold", "PCA results, showing the first $nfactors dimensions:\n")
     ## Loadings
     loads = loadings(fa)[:, 1:nfactors]
-    arr = hcat(loads, unique_variance(fa))
-    setdimnames!(arr, [:variable, :factor])
-    setnames!(arr, vcat(names(loads, 2)..., "Unique Var"), 2)
     println(io, crayon"bold", "Factor Loadings")
-    pretty(io, arr; topcorner="Variable", kwargs...)
+    pretty(io, loads; topcorner="Variable", kwargs...)
     ## Variance explained
     eigs = eigvals(fa)
     eig_pct = eigs ./ sum(eigs)
