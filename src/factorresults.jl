@@ -176,3 +176,13 @@ function unique_variance(fa::FactorResults)
     vec = 1 .- dropdims(sum(loadings(fa) .^ 2; dims=2); dims=2)
     return NamedArray(vec; dimnames=(:variable,), names=(fa.nm,))
 end
+
+"""
+    variance_explained(fa::FactorResults{<:PCA})
+
+Get variance explained by PCA dimension (= eigvals ./ sum(eigvals))
+"""
+function variance_explained(fa::FactorResults{<:PCA})
+    eigs = eigvals(fa)
+    return eigs ./ sum(eigs)
+end

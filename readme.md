@@ -30,6 +30,7 @@ on the **FactorResults** outputs from those functions.
 * **cos2_ind**: get cos2 (contribution) score by individual
 * **cos2_var**: get cos2 (contribution) score by variable (= squared loadings)
 * **unique_variance**: get unique variance not captured for each variable (= 1 - sum of squared loadings).
+* **variance_explained**: get unique variance not captured for each variable (= 1 - sum of squared loadings).
 
 * **biplot**: Quick variable biplot for `FactorResults` object. Loaded with `Makie` if a Makie backend is imported.
 * **indplot**: Quick individuals plot for `FactorResults` object. Loaded with `Makie` if a Makie backend is imported.
@@ -59,16 +60,18 @@ pretty(pca1)
 eigvals(pca1)
 loadings(pca1) |> pretty
 cos2_ind(pca1)
-unique_variance(pca1)
+variance_explained(pca1)
 
 # Predict calls on data used for prediction
 predict(pca1)
-# or can be passed new data as observations * vars
+# or can be passed new data as observations * vars, scaling is applied
 predict(pca1, bfi[1:10,:])
+predict(pca1, bfi[1:10,:]; apply_scaling=false)
 
 # show biplot
 using GLMakie
 biplot(pca1; max_labels=20)
+indplot(pca1)
 
 # show individuals plot and customise
 fig, ax = indplot(pca1)
@@ -81,6 +84,7 @@ fa1 = fa(bfi, 5)
 efa1 = efa(fa1, Geomin()) 
 pretty(efa1)
 loadings(efa1)
+predict(efa1)
 
 # Lavaan efa - note the warning
 using RCall

@@ -1,6 +1,6 @@
 
 """
-    biplotarrows(loadings, var_names; dims=[1,2], max_labels=10, circle=true, color=nothing, kwargs...)
+    biplot(fa::FactorResults; dims=[1,2], max_labels=10, circle=true, color=nothing, kwargs...)
 
 Create a biplot with arrows and text showing how variables relate to principal components.
 
@@ -15,64 +15,26 @@ Shows arrows pointing from the origin to each variable's position.
 - `max_labels`: Max number of labels to show
 - `circle`: Show a circle?
 - `color`: Vector of colors, or numbers for a scale, defaults to heatmap on arrow length
-- `kwargs...`: Extra plotting options like figure size
+- `kwargs...`: Passed to Figure()
 """
-MakieCore.@recipe(BiPlotArrows, loadings, var_names) do scene
-    MakieCore.Theme(; dims=[1, 2], max_labels=10, circle=true, color=nothing)
-end
-
-function MakieCore.plot!(bp::BiPlotArrows)
-    loadings = bp[1][]  # Extract value from observable
-    var_names = bp[2][]  # Extract value from observable
-    dims = bp.dims[]     # Extract value from observable
-    circle = bp.circle[]
-    color = bp.color[]
-    max_labels = first(bp.max_labels[])
-
-    # Unit circle
-    if circle
-        θ = 0:0.01:2π
-        MakieCore.lines!(bp, cos.(θ), sin.(θ); color=:gray, alpha=0.3)
-    end
-
-    # Arrows and labels
-    x, y = loadings[:, dims[1]], loadings[:, dims[2]]
-    dist = sqrt.(x .^ 2 .+ y .^ 2)
-    if isnothing(color)
-        MakieCore.arrows!(
-            bp, zeros(length(x)), zeros(length(y)), x, y; color=dist, colormap=:heat
-        )
-    elseif eltype(color) <: Number
-        MakieCore.arrows!(
-            bp, zeros(length(x)), zeros(length(y)), x, y; color=color, colormap=:heat
-        )
+function biplot(fa::FactorResults; dims=[1, 2], kwargs...)
+    fig, ax = biplotarrows(fa; dims=dims, kwargs...)
+    Makie.vlines!(ax, [0]; color=:darkgrey)
+    Makie.hlines!(ax, [0]; color=:darkgrey)
+    ax.aspect = Makie.DataAspect()
+    if typeof(fa) <: FactorResults{<:PCA}
+        var_explained = round.(variance_explained(fa) * 100; digits=1)
+        ax.xlabel = "PC$(dims[1]) ($(var_explained[dims[1]])%)"
+        ax.ylabel = "PC$(dims[2]) ($(var_explained[dims[2]])%)"
     else
-        MakieCore.arrows!(bp, zeros(length(x)), zeros(length(y)), x, y; color=color)
+        ax.xlabel = "Factor $(dims[1])"
+        ax.ylabel = "Factor $(dims[2])"
     end
-
-    #crop text to only most important vars if too many
-    idx = if length(dist) > max_labels
-        partialsortperm(dist, 1:max_labels; rev=true)
-    else
-        1:length(dist)
-    end
-    for i in idx
-        MakieCore.text!(bp, x[i], y[i]; text=var_names[i], offset=(0, 5), alpha=dist[i])
-    end
-    bp
+    fig
 end
 
 """
-    biplotarrows(fa::FactorResults; kwargs...)
-
-Draw biplot arrows and text directly from a fitted factor analysis model.
-
-Takes your already-fitted model and variable names, then makes the biplot for you.
-"""
-biplotarrows(fa::FactorResults; kwargs...) = biplotarrows(loadings(fa), fa.nm; kwargs...)
-
-"""
-    indplot(coords; dims=[1,2], color=nothing, kwargs...)
+    indplot(fa::FactorResults; dims=[1,2], color=nothing, kwargs...)
 
 Plot individual data points in principal component space.
 
@@ -80,45 +42,20 @@ Plot individual data points in principal component space.
 - `coords`: Matrix where each row is an observation and columns are principal components
 - `dims`: Which two components to plot (default is PC1 vs PC2)  
 - `color`: How to color the points - can be numbers (creates a color scale) or categories
-- `kwargs...`: Extra plotting options
+- `kwargs...`: Extra plotting options passed to Figure()
 """
-MakieCore.@recipe(IndScatter, coords) do scene
-    MakieCore.Theme(; dims=[1, 2], color=nothing)
-end
-
-function MakieCore.plot!(ip::IndScatter)
-    coords = ip.coords[]  # Extract value from observable
-    dims = ip.dims[]   # Extract value from observable
-    color = ip.color[] # Extract value from observable
-
-    # Add dark grey lines
-    # Not possible to have hlines or vlines without importing Makie
-
-    if isnothing(color)
-        MakieCore.scatter!(ip, coords[:, dims[1]], coords[:, dims[2]]; alpha=0.3)
-    elseif eltype(color) <: Number
-        MakieCore.scatter!(
-            ip,
-            coords[:, dims[1]],
-            coords[:, dims[2]];
-            alpha=0.3,
-            color=color,
-            colormap=:Spectral,
-        )
-        # Note: Colorbar would need to be handled at the figure level
+function indplot(fa::FactorResults; dims=[1, 2], kwargs...)
+    fig, ax = indscatter(fa; dims=dims, kwargs...)
+    Makie.vlines!(ax, [0]; color=:darkgrey)
+    Makie.hlines!(ax, [0]; color=:darkgrey)
+    ax.aspect = Makie.DataAspect()
+    if typeof(fa) <: FactorResults{<:PCA}
+        var_explained = round.(variance_explained(fa) * 100; digits=1)
+        ax.xlabel = "PC$(dims[1]) ($(var_explained[dims[1]])%)"
+        ax.ylabel = "PC$(dims[2]) ($(var_explained[dims[2]])%)"
     else
-        MakieCore.scatter!(
-            ip, coords[:, dims[1]], coords[:, dims[2]]; alpha=0.3, color=color
-        )
+        ax.xlabel = "Factor $(dims[1])"
+        ax.ylabel = "Factor $(dims[2])"
     end
-    ip
+    fig
 end
-
-"""
-    indscatter(fa::FactorResults; kwargs...)
-
-Plot individuals directly from a factor fit and your original data.
-
-Takes your fitted factors and original data, then plots it.
-"""
-indscatter(fa::FactorResults; kwargs...) = indscatter(predict(fa); kwargs...)
