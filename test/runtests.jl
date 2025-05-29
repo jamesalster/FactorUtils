@@ -6,7 +6,8 @@ using RCall: @R_str, @rget, rcopy
 using RDatasets
 using DataFrames: dropmissing
 using Statistics: std, mean
-import Makie
+using StatsBase
+using Makie: Makie
 
 @info "Setting up test environment..."
 
@@ -17,6 +18,7 @@ bfi = dropmissing(bfi_all)
 # Make objects from this package
 pca_fu = pca(bfi)
 fa_fu = fa(bfi, 5)
+fa_fu2 = fa(bfi, 5; scale=false)
 
 @testset "Namespace" begin
     @test loadings === MultivariateStats.loadings
@@ -25,13 +27,22 @@ fa_fu = fa(bfi, 5)
 end
 
 @testset "DataProcessing" begin
-    #normalise
-    vec = normalise(rand(1:10, 100))
-    @test eltype(vec) === Float64
-    @test isapprox(mean(vec), 0.0; atol=1e-10)
-    @test isapprox(std(vec), 1.0; atol=1e-10)
-    # test type
-    @test eltype(normalise(rand(Float32, 100))) === Float32
+
+    #normalisation
+    trans_fun = zscore_transform(bfi)
+    @test trans_fun isa Function
+    bfi_trans = @test_nowarn trans_fun(bfi)
+    bfi_trans2 = @test_nowarn trans_fun(bfi[1:5, :])
+    @test bfi_trans2 == bfi_trans[1:5, :]
+    @test eltype(bfi_trans[:, :A1]) === Float64
+    @test isapprox(mean(bfi_trans[:, :A1]), 0.0; atol=1e-10)
+    @test isapprox(std(bfi_trans[:, :A1]), 1.0; atol=1e-10)
+
+    new_df = DataFrame(:a => 1:5, :b => 2:6)
+    @test_throws ArgumentError trans_fun(new_df)
+    new_df2 = DataFrame(:A1 => Float32.(1:5), :C2 => Float32.(2:6))
+    new_df2_trans = @test_nowarn trans_fun(new_df2)
+    @test eltype(new_df2_trans[:, :A1]) === Float32
 
     #data processing
     @test_throws ArgumentError prep_data(bfi_all)
@@ -45,7 +56,11 @@ end
 end
 
 @testset "Methods" begin
-    bfi_mat = mapslices(normalise, Matrix(bfi); dims=1)
+    bfi_mat = mapslices(
+        x -> StatsBase.transform(fit(ZScoreTransform, x), x),
+        Matrix(convert.(Float64, bfi));
+        dims=1,
+    )
     # multivariate stats
     fa_ms = fit(FactorAnalysis, bfi_mat', maxoutdim=5, method=:cm)
 
@@ -53,9 +68,11 @@ end
     @test fa_fu isa FactorResults
     @test fa_fu.fa isa FactorAnalysis
     @test fa_fu.nm == names(bfi)
+    @test fa_fu.trans isa Function
     @test all(isapprox.(mean(fa_fu.X; dims=2), 0.0, atol=1e-10))
     @test all(isapprox.(std(fa_fu.X; dims=2), 1.0, atol=1e-10))
     @test size(fa_fu.X) == size(bfi_mat')
+    @test fa_fu2.trans == identity
 
     # methods
     @test size(fa_fu) == size(fa_ms)
@@ -67,6 +84,13 @@ end
     @test predict(fa_fu) ≈ MultivariateStats.predict(fa_ms, bfi_mat')' #nb shape
     @test projection(fa_fu) ≈ MultivariateStats.projection(fa_ms)
     @test mean(fa_fu) ≈ MultivariateStats.mean(fa_ms)
+
+    # test prediciton on new data, applying scaling. 
+    @test predict(fa_fu, bfi[1:9, :]) ≈ predict(fa_fu)[1:9, :]
+    # won't work if not scaled
+    @test !isapprox(
+        predict(fa_fu, bfi[1:9, :]; apply_scaling=false), predict(fa_fu)[1:9, :]
+    )
 
     # new methods 
     @test cos2_var(fa_fu) ≈ MultivariateStats.loadings(fa_ms) .^ 2

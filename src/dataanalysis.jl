@@ -1,39 +1,5 @@
 
 """
-    normalise(x)
-
-Z-score a numeric vector to give it mean of 0 and standard deviation of 1.
-    Uses StatsBase.ZScoreTransform.
-"""
-function normalise(x)
-    x_float = eltype(x) <: AbstractFloat ? x : convert.(Float64, x)
-    trans = fit(ZScoreTransform, x_float)
-    return StatsBase.transform(trans, x_float)
-end
-
-"""
-    prep_data(df::DataFrame)::DataFrame
-
-Prepare data for Factor Analysis: take a DataFrame, check there are no missing values, 
-    and drop (with warning) columns where the sum is 0, or element type is not numeric.
-"""
-function prep_data(df::DataFrame)::DataFrame
-    #no missing
-    df_nomissing = disallowmissing(df)
-    #drop if not numeric
-    not_numeric = findall(col -> !<:(eltype(col),Number), eachcol(df))
-    !isempty(not_numeric) &&
-        @warn """Dropping columns because type is not numeric: $(join(names(df)[not_numeric], "\n"))"""
-    #drop if sum is 0
-    sum_is_zero = findall(col -> (eltype(col) <: Number) && (sum(col) ≈ 0.0), eachcol(df))
-    !isempty(sum_is_zero) &&
-        @warn """Dropping columns because sum is 0: $(join(names(df)[sum_is_zero], "\n"))"""
-    cols_to_keep = setdiff(1:size(df, 2), union(sum_is_zero, not_numeric))
-    #return
-    return df_nomissing[:, cols_to_keep]
-end
-
-"""
     pca(df::DataFrame; scale=true)
 
 Perform a principal component analysis, with scaling if scale=true. 
@@ -43,11 +9,12 @@ The dataframe should be observations * variables (the transpose of the matrix ta
 """
 function pca(df::DataFrame; scale=true)::FactorResults
     df_fit = prep_data(df)
-    nm = names(df_fit) #get names
-    mat = Matrix(df_fit)
-    X = scale ? mapslices(normalise, mat; dims=1) : mat
+    transform_fun = scale ? zscore_transform(df_fit) : identity
+    df_scaled = transform_fun(df_fit)
+    nm = names(df_scaled) #get names
+    X = Matrix(df_scaled)
     pca = fit(PCA, X')
-    fa_obj = FactorResults(pca, X', nm)
+    fa_obj = FactorResults(pca, X', nm, transform_fun)
     return fa_obj
 end
 
@@ -63,11 +30,12 @@ By default the method is `:cm``, which seems more reliable than `:em`. See Multi
 """
 function fa(df::DataFrame, nfactors::Int; scale=true, method=:cm)::FactorResults
     df_fit = prep_data(df)
-    nm = names(df_fit) #get names
-    mat = Matrix(df_fit)
-    X = scale ? mapslices(normalise, mat; dims=1) : mat
+    transform_fun = scale ? zscore_transform(df_fit) : identity
+    df_scaled = transform_fun(df_fit)
+    nm = names(df_scaled) #get names
+    X = Matrix(df_scaled)
     fa = fit(FactorAnalysis, X'; maxoutdim=nfactors, method=method)
-    return FactorResults(fa, X', nm)
+    return FactorResults(fa, X', nm, transform_fun)
 end
 
 """

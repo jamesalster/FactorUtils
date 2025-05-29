@@ -14,11 +14,13 @@ Implements all methods from MultivariateStats for types `FactorAnalysis` and `PC
 - fa::MultivariateStats.AbstractDimensionalityReduction: FactorAnalysis object from MultivariateStats 
 - X::AbstractArray{<:Real}: the input data with dimensions **obseravtions x variables** (NB)
 - nm::Vector{String}: variable names
+- trans::Function: function that transforms a dataframe by the same scaling transformation used on the original data.
 """
 mutable struct FactorResults{T<:MultivariateStats.AbstractDimensionalityReduction}
     fa::T
     X::AbstractArray{<:Real}
     nm::Vector{String}
+    trans::Function
 end
 
 #extend FactorAnalysis and PCA methods
@@ -64,27 +66,38 @@ function MultivariateStats.projection(fa::FactorResults)
 end
 
 """ 
-    predict(fa::FactorResults, X)
+    predict(fa::FactorResults, X; apply_scaling=true)
     predict(fa::FactorResults)
 
 Provide the position of the rows in X according to the factor representation in `fa`.
+
+This re-applies the original data normalization using `fa.trans()` if was set to `true` in 
+    the original `fa()` or `pca()` call.
 
 NB that the dimensionality expected is observations * variables, unlike 
 `MultivariateStats.predict(::FactorAnalysis, X)` which expects variables * observations.
 
 `predict()` without the array X takes the fit data for `fa` as the points to represent.
 """
-function predict(fa::FactorResults, X)
-    size(X, 1) != size(fa, 1) &&
+function predict(fa::FactorResults, X; apply_scaling=true)
+
+    #Check dims
+    size(X, 2) != size(fa, 1) &&
         throw(DimensionMismatch("X should be of dimension obs * vars for FactorUtils"))
-    preds = predict(fa.fa, X)'
+
+    # Convert to df if necessary for transformation
+    X_df = X isa DataFrame ? X : DataFrame(X, fa.nm) # assume names are correct
+    #Transform if necessary and back to matrix
+    X_trans = apply_scaling ? Matrix(fa.trans(X_df)) : Matrix(X_df)
+
+    preds = predict(fa.fa, X_trans')'
     return NamedArray(
         Matrix(preds);
         dimnames=(:row, :factor),
         names=(1:size(preds, 1), ["f$i" for i in 1:size(fa, 2)]),
     )
 end
-predict(fa::FactorResults) = predict(fa, fa.X)
+predict(fa::FactorResults) = predict(fa, fa.X'; apply_scaling=false)
 
 function reconstruct(fa::FactorResults, z)
     size(z, 2) != size(fa, 2) &&

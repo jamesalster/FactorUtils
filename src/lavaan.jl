@@ -13,11 +13,10 @@ Note you will need an R installation with lavaan installed, and to import `RCall
 function efa_lavaan(df::DataFrame, nfactors::Int, rotation::String; scale=true)
     @warn "Factor analysis from lavaan reproduces the loadings but other methods may not match lavaan output."
     df_fit = prep_data(df)
-    nm = names(df_fit) #get names
-    mat = Matrix(df_fit)
-    X = scale ? mapslices(normalise, mat; dims=1) : mat
-    #fit in lavaan
-    X_df = DataFrame(X, nm) #lavaan needs df
+    transform_fun = scale ? zscore_transform(df_fit) : identity
+    X_df = transform_fun(df_fit)
+    nm = names(X_df) #get names
+    X = Matrix(X_df)
     RCall.R"""
         require(lavaan)
         efa_fit = efa($X_df, nfactors = $nfactors, rotation = $rotation, output = "lavaan")
@@ -28,5 +27,5 @@ function efa_lavaan(df::DataFrame, nfactors::Int, rotation::String; scale=true)
     resid = diag(RCall.@rget resid)
     mn = vec(mean(X; dims=1))
     fa_obj = FactorAnalysis{eltype(fac)}(mn, fac, resid)
-    return FactorResults(fa_obj, X', nm)
+    return FactorResults(fa_obj, X', nm, transform_fun)
 end
