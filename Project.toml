@@ -1,7 +1,7 @@
 name = "FactorUtils"
 uuid = "6732f443-bc42-4eaa-8f26-e08a01b9f470"
+version = "0.3.1"
 author = "James Alster <jamesalster2@gmail.com>"
-version = "0.2.0"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
@@ -22,6 +22,7 @@ DataFrames = "1.7.0"
 DimensionalData = "0.29.17"
 LinearAlgebra = "1.11.0"
 MakieCore = "0.9.3"
+PrettyTables = "2.4.0"
 Reexport = "1.2.2"
 Requires = "1.3.1"
 Statistics = "1.11.1"

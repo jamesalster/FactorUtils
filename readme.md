@@ -7,7 +7,7 @@ This package is essentially a high-level wrapper around [MultivariateStats.jl](h
 
 It centres on methods `fa` and `pca` that take `DataFrame`s, and return `FactorResults` objects which store not only the `FactorAnalysis` output from *MultivariateStats* but also the variable names.
 
-These objects then produce output as prettier `DimArrays` from [DimensionalData.jl](https://rafaqz.github.io/DimensionalData.jl/stable/) and can be called with `pretty()` to provide informative output about the model. `biplot()` and `indplot()` methods are also provided with for Makie.
+These objects then produce output as prettier `DimArrays` from [DimensionalData.jl](https://rafaqz.github.io/DimensionalData.jl/stable/) and can be called with `pretty()` to provide informative output about the model. `biplot()` and `indplot()` methods are also provided for Makie.
 
 NB while *MultivariateStats* uses **variable * observation** matrices, this package uses **observation * variable** matrices.
 
