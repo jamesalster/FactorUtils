@@ -1,7 +1,7 @@
 name = "FactorUtils"
 uuid = "6732f443-bc42-4eaa-8f26-e08a01b9f470"
 author = "James Alster <jamesalster2@gmail.com>"
-version = "0.2.0"
+version = "0.3.0"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
