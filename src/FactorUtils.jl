@@ -5,7 +5,8 @@ using Requires
 using Reexport
 @reexport using MultivariateStats
 @reexport using FactorRotations
-@reexport using NamedArrays
+@reexport using DimensionalData
+using DimensionalData.Dimensions: dims, label
 using PrettyTables
 using StatsBase
 using DataFrames: DataFrame, disallowmissing
@@ -25,7 +26,6 @@ include("plot_recipes.jl")
 
 loadings = MultivariateStats.loadings
 rotate! = FactorRotations.rotate!
-setnames! = NamedArrays.setnames!
 
 export FactorResults,
     cos2_ind,

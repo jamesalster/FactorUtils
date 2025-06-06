@@ -7,7 +7,7 @@ This package is essentially a high-level wrapper around [MultivariateStats.jl](h
 
 It centres on methods `fa` and `pca` that take `DataFrame`s, and return `FactorResults` objects which store not only the `FactorAnalysis` output from *MultivariateStats* but also the variable names.
 
-These objects then produce output as prettier `NamedArrays` and can be called with `pretty()` to provide informative output about the model. `biplot()` and `indplot()` methods are also provided with for Makie.
+These objects then produce output as prettier `DimArrays` from [DimensionalData.jl](https://rafaqz.github.io/DimensionalData.jl/stable/) and can be called with `pretty()` to provide informative output about the model. `biplot()` and `indplot()` methods are also provided with for Makie.
 
 NB while *MultivariateStats* uses **variable * observation** matrices, this package uses **observation * variable** matrices.
 
@@ -25,7 +25,7 @@ on the **FactorResults** outputs from those functions.
 * **prep_data**: Checks missing-ness and drops non-numeric or sum-to-0 columns
 * **normalise**: A wrapper around StatsBase.ZScoreTransform
 
-* **pretty**: Highlgihted pretty output for a NamedArray
+* **pretty**: Highlgihted pretty output for a DimArray
 
 * **cos2_ind**: get cos2 (contribution) score by individual
 * **cos2_var**: get cos2 (contribution) score by variable (= squared loadings)

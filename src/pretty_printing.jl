@@ -7,9 +7,9 @@ default_options = (
 )
 
 """
-    pretty(arr::NamedArray; topcorner=nothing, highlighters=factor_highlighters, kwargs...)
+    pretty(io::IO, arr::DimArray; topcorner=nothing, highlighters=factor_highlighters, kwargs...)
 
-Provide a pretty table representation of a NamedArray. The default highlighters are those defined by 
+Provide a pretty table representation of a DimArray. The default highlighters are those defined by 
     `FactorUtils` for factor analysis, suited for quick understanding of loadings on **normalized** data. 
     Pass `higlighters=()` to see un-highlighted data.
 
@@ -27,21 +27,21 @@ Will throw an error if the array `arr` does not have two dimensions.
 
 ## Arguments
 
-- topcorner: The label to print in the top corner. Defaults to the dimnames of the NamedArray.
+- topcorner: The label to print in the top corner. Defaults to the dimnames of the DimArray.
 - highlighters: the default highlighters defined by FactorUtils (see above).
 - kwargs: passed to `PrettyTables.pretty_table()` Note especially "crop" which is `:horizontal` by default
     but could be `:vertical` or `:none`.
 """
 function pretty(
-    io::IO, arr::NamedArray; topcorner=nothing, highlighters=factor_highlighters, kwargs...
+    io::IO, arr::DimArray; topcorner=nothing, highlighters=factor_highlighters, kwargs...
 )
     ndims(arr) != 2 && throw(ArgumentError("pretty() only works on 2D Arrays"))
-    top_corner = isnothing(topcorner) ? join(dimnames(arr), " / ") : topcorner
+    top_corner = isnothing(topcorner) ? join(label(dims(arr)), " / ") : topcorner
     return pretty_table(
         io,
-        arr;
-        header=names(arr, 2),
-        row_labels=names(arr, 1),
+        parent(arr);
+        header=Array(dims(arr, 2)),
+        row_labels=Array(dims(arr, 1)),
         row_label_column_title=top_corner,
         highlighters=highlighters,
         default_options...,
@@ -50,7 +50,7 @@ function pretty(
 end
 
 """
-    pretty(fa::FactorResults{<:PCA}; nfactors=5, kwargs...)
+    pretty(io::IO, fa::FactorResults{<:PCA}; nfactors=5, kwargs...)
 
 Provide a pretty representation of a `FactorResults` holding a `PCA`. 
     Shows a loadings table, with unique variance, and the variance explained on each factor.
@@ -68,14 +68,18 @@ function pretty(io::IO, fa::FactorResults{<:PCA}; nfactors=5, kwargs...)
     eigs = eigvals(fa)
     eig_pct = eigs ./ sum(eigs)
     arr = hcat(eigs[1:nfactors], eig_pct[1:nfactors], cumsum(eig_pct[1:nfactors]; dims=1))
-    setdimnames!(arr, [:factor, :statistic])
-    setnames!(arr, ["Eigenvalue", "% of Variance", "Cumulative % of Variance"], 2)
-    println(io, crayon"bold", "Variance Explained")
-    pretty(io, arr; topcorner="Factor", highlighters=(), kwargs...)
+    pretty(
+        io,
+        arr;
+        topcorner="Factor",
+        highlighters=(),
+        header=["Eigenvalue", "% Variance Explained", "Cumulative % of Variance"],
+        kwargs...,
+    )
 end
 
 """
-    pretty(fa::FactorResults{<:FactorAnalysis}; kwargs...)
+    pretty(io::IO, fa::FactorResults{<:FactorAnalysis}; kwargs...)
 
 Provide a pretty representation of a `FactorResults` holding a `FactorAnalysis`. 
     Shows a loadings table, with unique variance, and the (empirical) latent
@@ -86,27 +90,24 @@ Kwargs are passed to `PrettyTables.pretty_table()`.
 function pretty(io::IO, fa::FactorResults{<:FactorAnalysis}; kwargs...)
     println(io, crayon"bold", "Factor Analysis results:\n")
     ## Loadings
-    loads = loadings(fa)
-    arr = hcat(loads, unique_variance(fa))
-    setdimnames!(arr, [:variable, :factor])
-    setnames!(arr, vcat(names(loads, 2)..., "Unique Var"), 2)
+    loads = set(loadings(fa), Dim{:factor} => DimensionalData.Dimensions.Unordered)
+    # broken, messy
+    unique_var = unique_variance(fa)
+    unique_var = DimArray(
+        reshape(unique_var, :, 1), (dims(unique_var, 1), Dim{:factor}(["Unique Var"]))
+    )
+    arr = cat(loads, unique_var; dims=2)
     println(io, crayon"bold", "Factor Loadings")
     pretty(io, arr; topcorner="Variable", kwargs...)
     ## Latent variable correlations
     println(io, crayon"bold", "Empirical Latent Variable Correlations")
-    pretty(
-        io,
-        NamedArray(
-            cor(predict(fa));
-            dimnames=(:x, :y),
-            names=(["f$i" for i in 1:size(fa, 2)], ["f$i" for i in 1:size(fa, 2)]),
-        );
-        topcorner="Correlations",
-        kwargs...,
-    )
+    pretty(io, cor(predict(fa)); topcorner="Correlations", kwargs...)
 end
 
 # Catch-all method for non-IO calls
-function pretty(args...; kwargs...)
-    pretty(stdout, args...; kwargs...)
+function pretty(fa::FactorResults, args...; kwargs...)
+    pretty(stdout, fa, args...; kwargs...)
+end
+function pretty(da::DimArray, args...; kwargs...)
+    pretty(stdout, da, args...; kwargs...)
 end

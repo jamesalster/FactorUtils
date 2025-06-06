@@ -23,7 +23,6 @@ fa_fu2 = fa(bfi, 5; scale=false)
 @testset "Namespace" begin
     @test loadings === MultivariateStats.loadings
     @test FactorUtils.rotate! === FactorRotations.rotate!
-    @test setnames! === NamedArrays.setnames!
 end
 
 @testset "DataProcessing" begin
@@ -77,7 +76,7 @@ end
     # methods
     @test size(fa_fu) == size(fa_ms)
     @test loadings(fa_fu) ≈ MultivariateStats.loadings(fa_ms)
-    @test loadings(fa_fu) isa NamedArray
+    @test loadings(fa_fu) isa DimArray
     @test var(fa_fu) ≈ MultivariateStats.var(fa_ms)
     @test cov(fa_fu) ≈ MultivariateStats.cov(fa_ms)
     @test size(predict(fa_fu)) == (size(bfi, 1), 5)
@@ -112,7 +111,7 @@ end
     # methods
     @test size(pca_fu) == size(pca_ms)
     @test loadings(pca_fu) ≈ MultivariateStats.loadings(pca_ms)
-    @test loadings(pca_fu) isa NamedArray
+    @test loadings(pca_fu) isa DimArray
     @test size(predict(pca_fu)) == (size(bfi, 1), 25)
     @test predict(pca_fu) ≈ MultivariateStats.predict(pca_ms, bfi_mat')' #nb shape
     @test projection(pca_fu) ≈ MultivariateStats.projection(pca_ms)
@@ -152,11 +151,12 @@ end
     @test_nowarn pretty(arr; highlighters=())
 
     # Test error for non-2D arrays
-    arr_1d = NamedArray([1, 2, 3], (["a", "b", "c"],), ("dim1",))
+    arr_1d = DimArray([1, 2, 3], Dim{:dim1}(["a", "b", "c"]))
     @test_throws ArgumentError pretty(arr_1d)
 
-    arr_3d = NamedArray(
-        rand(2, 2, 2), (["a", "b"], ["c", "d"], ["e", "f"]), ("dim1", "dim2", "dim3")
+    arr_3d = DimArray(
+        rand(2, 2, 2),
+        (Dim{:dim1}(["a", "b"]), Dim{:Dim2}(["c", "d"]), Dim{:dim3}(["e", "f"])),
     )
     @test_throws ArgumentError pretty(arr_3d)
 

@@ -26,7 +26,7 @@ Perform a factor analysis, with scaling if scale=true.
 
 The dataframe should be observations * variables (the transpose of the matrix taken by MultivariateStats)
 
-By default the method is `:cm``, which seems more reliable than `:em`. See MultivariateStats.FactorAnalysis for details.
+By default the method is `:cm`, which seems more reliable than `:em`. See MultivariateStats.FactorAnalysis for details.
 """
 function fa(df::DataFrame, nfactors::Int; scale=true, method=:cm)::FactorResults
     df_fit = prep_data(df)

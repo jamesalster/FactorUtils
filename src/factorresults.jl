@@ -53,15 +53,15 @@ end
 
 function MultivariateStats.loadings(fa::FactorResults)
     loads = MultivariateStats.loadings(fa.fa)
-    return NamedArray(
-        loads; dimnames=(:variable, :factor), names=(fa.nm, ["f$i" for i in 1:size(fa, 2)])
+    return DimArray(
+        loads, (Dim{:variable}(fa.nm), Dim{:factor}(["f$i" for i in 1:size(fa, 2)]))
     )
 end
 
 function MultivariateStats.projection(fa::FactorResults)
     proj = MultivariateStats.projection(fa.fa)
-    return NamedArray(
-        proj; dimnames=(:variable, :factor), names=(fa.nm, ["f$i" for i in 1:size(fa, 2)])
+    return DimArray(
+        proj, (Dim{:variable}(fa.nm), Dim{:factor}(["f$i" for i in 1:size(fa, 2)]))
     )
 end
 
@@ -91,11 +91,7 @@ function predict(fa::FactorResults, X; apply_scaling=true)
     X_trans = apply_scaling ? Matrix(fa.trans(X_df)) : Matrix(X_df)
 
     preds = predict(fa.fa, X_trans')'
-    return NamedArray(
-        Matrix(preds);
-        dimnames=(:row, :factor),
-        names=(1:size(preds, 1), ["f$i" for i in 1:size(fa, 2)]),
-    )
+    return DimArray(preds, (Dim{:row}, Dim{:factor}(["f$i" for i in 1:size(fa, 2)])))
 end
 predict(fa::FactorResults) = predict(fa, fa.X'; apply_scaling=false)
 
@@ -103,34 +99,32 @@ function reconstruct(fa::FactorResults, z)
     size(z, 2) != size(fa, 2) &&
         throw(DimensionMismatch("z should be of dimension obs * vars for FactorUtils"))
     recon = MultivariateStats.reconstruct(fa.fa, z')'
-    return NamedArray(
-        Matrix(recon); dimnames=(:row, :factor), names=(1:size(recon, 1), fa.nm)
-    )
+    return DimArray(recon, (Dim{:row}, Dim{:factor}(fa.nm)))
 end
 
 function cov(fa::FactorResults)
     covs = MultivariateStats.cov(fa.fa)
-    return NamedArray(covs; dimnames=(:x, :y), names=(fa.nm, fa.nm))
+    return DimArray(covs, (X(fa.nm), Y(fa.nm)))
 end
 
 function var(fa::FactorResults)
     vec = MultivariateStats.var(fa.fa)
-    return NamedArray(vec; dimnames=(:variable,), names=(fa.nm,))
+    return DimArray(vec, (Dim{:variable}(fa.nm)))
 end
 
 function mean(fa::FactorResults)
     vec = MultivariateStats.mean(fa.fa)
-    return NamedArray(vec; dimnames=(:variable,), names=(fa.nm,))
+    return DimArray(vec, (Dim{:variable}(fa.nm)))
 end
 
 function eigvals(fa::FactorResults{<:PCA})
     eigs = eigvals(fa.fa)
-    return NamedArray(eigs; dimnames=(:factor,), names=(["f$i" for i in 1:size(fa, 2)],))
+    return DimArray(eigs, (Dim{:factor}(["f$i" for i in 1:size(fa, 2)])))
 end
 function eigvecs(fa::FactorResults{<:PCA})
     eigs = eigvecs(fa.fa)
-    return NamedArray(
-        eigs; dimnames=(:variable, :factor), names=(fa.nm, ["f$i" for i in 1:size(fa, 2)])
+    return DimArray(
+        eigs, (Dim{:variable}(fa.nm), Dim{:factor}(["f$i" for i in 1:size(fa, 2)]))
     )
 end
 MultivariateStats.principalvars(fa::FactorResults{<:PCA}) = eigvals(fa)
@@ -149,11 +143,7 @@ function cos2_ind(fa::FactorResults)
     squared_scores = factor_scores .^ 2
     squared_distances = sum(squared_scores; dims=1)  # 1×n_obs vector
     cos2 = squared_scores ./ squared_distances
-    return NamedArray(
-        Matrix(cos2);
-        dimnames=(:row, :factor),
-        names=(1:size(cos2, 1), ["f$i" for i in 1:size(fa, 2)]),
-    )
+    return DimArray(cos2, (Dim{:row}, Dim{:factor}(["f$i" for i in 1:size(fa, 2)])))
 end
 
 """
@@ -174,7 +164,7 @@ This is 1 - the sum of the squared loadings across factors.
 """
 function unique_variance(fa::FactorResults; nfactors=size(fa, 2))
     unique_var = vec(1 .- sum(loadings(fa)[:, 1:nfactors] .^ 2; dims=2))
-    return NamedArray(unique_var; dimnames=(:variable,), names=(fa.nm,))
+    return DimArray(unique_var, (Dim{:variable}(fa.nm)))
 end
 
 """
