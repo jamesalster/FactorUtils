@@ -51,7 +51,7 @@ bfi_all = dataset("psych", "bfi")[:,2:26]
 bfi = dropmissing(bfi_all)
 
 # PCA
-pca1 = pca(bfi, 5)
+pca1 = pca(bfi)
 
 # Show loadings and variance explained
 pretty(pca1)
@@ -78,9 +78,8 @@ fig, ax = indplot(pca1)
 ax.xlabel = "My own label..."
 
 # FA
-fa1 = fa(bfi, 5)
-# rotate
-# preferred to FactorUtils.rotate! since it uses many repeats by default
+fa1 = fa(bfi, 5) # with n of factors
+# rotate, preferred to FactorUtils.rotate! since it uses many repeats by default
 efa1 = efa(fa1, Geomin()) 
 pretty(efa1)
 loadings(efa1)
