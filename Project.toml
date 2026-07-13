@@ -1,6 +1,6 @@
 name = "FactorUtils"
 uuid = "6732f443-bc42-4eaa-8f26-e08a01b9f470"
-version = "0.4.1"
+version = "0.5.0"
 author = "James Alster <jamesalster2@gmail.com>"
 
 [deps]
