@@ -25,7 +25,7 @@ on the **FactorResults** outputs from those functions.
 * **prep_data**: Checks missing-ness and drops non-numeric or sum-to-0 columns
 * **normalise**: A wrapper around StatsBase.ZScoreTransform
 
-* **pretty**: Highlgihted pretty output for a DimArray
+* **summary**: Highlighted pretty output for a `FactorResults` object
 
 * **cos2_ind**: get cos2 (contribution) score by individual
 * **cos2_var**: get cos2 (contribution) score by variable (= squared loadings)
@@ -54,7 +54,7 @@ bfi = dropmissing(bfi_all)
 pca1 = pca(bfi)
 
 # Show loadings and variance explained
-pretty(pca1)
+summary(pca1)
 
 # Get some statistics
 eigvals(pca1)
@@ -81,14 +81,14 @@ ax.xlabel = "My own label..."
 fa1 = fa(bfi, 5) # with n of factors
 # rotate, preferred to FactorUtils.rotate! since it uses many repeats by default
 efa1 = efa(fa1, Geomin()) 
-pretty(efa1)
+summary(efa1)
 loadings(efa1)
 predict(efa1)
 
 # Lavaan efa - note the warning
 using RCall
 efa2 = efa_lavaan(bfi, 5, "geomin")
-pretty(loadings(efa2))
+summary(loadings(efa2))
 ```
 
 ## TODO

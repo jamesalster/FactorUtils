@@ -143,33 +143,33 @@ end
     arr = loadings(fa_fu)
 
     # Test basic functionality
-    @test_nowarn pretty(arr);
+    @test_nowarn FactorUtils._pretty_print(arr);
 
     # Test with no highlighters
-    @test_nowarn pretty(arr; highlighters=());
+    @test_nowarn FactorUtils._pretty_print(arr; highlighters=());
 
     # Test error for non-2D arrays
     arr_1d = DimArray([1, 2, 3], Dim{:dim1}(["a", "b", "c"]))
-    @test_throws ArgumentError pretty(arr_1d)
+    @test_throws ArgumentError FactorUtils._pretty_print(arr_1d)
 
     arr_3d = DimArray(
         rand(2, 2, 2),
         (Dim{:dim1}(["a", "b"]), Dim{:Dim2}(["c", "d"]), Dim{:dim3}(["e", "f"])),
     )
-    @test_throws ArgumentError pretty(arr_3d)
+    @test_throws ArgumentError FactorUtils._pretty_print(arr_3d)
 
     # Capture output using redirect
-    output = sprint(pretty, arr);
+    output = sprint(FactorUtils._pretty_print, arr);
 
     @test contains(output, "f1")
     @test contains(output, "0.307")
     @test contains(output, "variable / factor")
     @test contains(output, "A1")
 
-    output2 = @test_nowarn sprint((io, x) -> pretty(io, x; topcorner="Custom Label"), arr)
+    output2 = @test_nowarn sprint((io, x) -> FactorUtils._pretty_print(io, x; topcorner="Custom Label"), arr)
     @test contains(output2, "Custom Label")
 
-    output_fa = @test_nowarn sprint(pretty, fa_fu)
+    output_fa = @test_nowarn sprint(summary, fa_fu)
     @test contains(output_fa, "Factor Loadings")
     @test contains(output_fa, "Variable")
     @test contains(output_fa, "C1")

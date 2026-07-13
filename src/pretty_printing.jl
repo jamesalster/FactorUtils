@@ -7,7 +7,7 @@ default_options = (
 )
 
 """
-    pretty(io::IO, arr::DimArray; topcorner=nothing, highlighters=factor_highlighters, kwargs...)
+    _pretty_print(io::IO, arr::DimArray; topcorner=nothing, highlighters=factor_highlighters, kwargs...)
 
 Provide a pretty table representation of a DimArray. The default highlighters are those defined by 
     `FactorUtils` for factor analysis, suited for quick understanding of loadings on **normalized** data. 
@@ -32,7 +32,7 @@ Will throw an error if the array `arr` does not have two dimensions.
 - kwargs: passed to `PrettyTables.pretty_table()` Note especially "crop" which is `:horizontal` by default
     but could be `:vertical` or `:none`.
 """
-function pretty(
+function _pretty_print(
     io::IO, arr::DimArray; topcorner=nothing, highlighters=factor_highlighters, kwargs...
 )
     ndims(arr) != 2 && throw(ArgumentError("pretty() only works on 2D Arrays"))
@@ -50,7 +50,7 @@ function pretty(
 end
 
 """
-    pretty(io::IO, fa::FactorResults{<:PCA}; nfactors=5, kwargs...)
+    summary(io::IO, fa::FactorResults{<:PCA}; nfactors=5, kwargs...)
 
 Provide a pretty representation of a `FactorResults` holding a `PCA`. 
     Shows a loadings table, with unique variance, and the variance explained on each factor.
@@ -58,17 +58,17 @@ Provide a pretty representation of a `FactorResults` holding a `PCA`.
 
 Kwargs are passed to `PrettyTables.pretty_table()`.
 """
-function pretty(io::IO, fa::FactorResults{<:PCA}; nfactors=5, kwargs...)
+function Base.summary(io::IO, fa::FactorResults{<:PCA}; nfactors=5, kwargs...)
     println(io, crayon"bold", "PCA results, showing the first $nfactors dimensions:\n")
     ## Loadings
     loads = loadings(fa)[:, 1:nfactors]
     println(io, crayon"bold", "Factor Loadings")
-    pretty(io, loads; topcorner="Variable", kwargs...)
+    _pretty_print(io, loads; topcorner="Variable", kwargs...)
     ## Variance explained
     eigs = eigvals(fa)
     eig_pct = eigs ./ sum(eigs)
     arr = hcat(eigs[1:nfactors], eig_pct[1:nfactors], cumsum(eig_pct[1:nfactors]; dims=1))
-    pretty(
+    _pretty_print(
         io,
         arr;
         topcorner="Factor",
@@ -79,7 +79,7 @@ function pretty(io::IO, fa::FactorResults{<:PCA}; nfactors=5, kwargs...)
 end
 
 """
-    pretty(io::IO, fa::FactorResults{<:FactorAnalysis}; kwargs...)
+    summary(io::IO, fa::FactorResults{<:FactorAnalysis}; kwargs...)
 
 Provide a pretty representation of a `FactorResults` holding a `FactorAnalysis`. 
     Shows a loadings table, with unique variance, and the (empirical) latent
@@ -87,7 +87,7 @@ Provide a pretty representation of a `FactorResults` holding a `FactorAnalysis`.
 
 Kwargs are passed to `PrettyTables.pretty_table()`.
 """
-function pretty(io::IO, fa::FactorResults{<:FactorAnalysis}; kwargs...)
+function Base.summary(io::IO, fa::FactorResults{<:FactorAnalysis}; kwargs...)
     println(io, crayon"bold", "Factor Analysis results:\n")
     ## Loadings
     loads = set(loadings(fa), Dim{:factor} => DimensionalData.Dimensions.Unordered)
@@ -98,16 +98,16 @@ function pretty(io::IO, fa::FactorResults{<:FactorAnalysis}; kwargs...)
     )
     arr = cat(loads, unique_var; dims=2)
     println(io, crayon"bold", "Factor Loadings")
-    pretty(io, arr; topcorner="Variable", kwargs...)
+    _pretty_print(io, arr; topcorner="Variable", kwargs...)
     ## Latent variable correlations
     println(io, crayon"bold", "Empirical Latent Variable Correlations")
-    pretty(io, cor(predict(fa)); topcorner="Correlations", kwargs...)
+    _pretty_print(io, cor(predict(fa)); topcorner="Correlations", kwargs...)
 end
 
 # Catch-all method for non-IO calls
-function pretty(fa::FactorResults, args...; kwargs...)
-    pretty(stdout, fa, args...; kwargs...)
+function Base.summary(fa::FactorResults, args...; kwargs...)
+    summary(stdout, fa, args...; kwargs...)
 end
-function pretty(da::DimArray, args...; kwargs...)
-    pretty(stdout, da, args...; kwargs...)
+function _pretty_print(da::DimArray, args...; kwargs...)
+    _pretty_print(stdout, da, args...; kwargs...)
 end
