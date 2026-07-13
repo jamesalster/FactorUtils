@@ -7,6 +7,8 @@ using RDatasets
 using DataFrames: dropmissing
 using Statistics: std, mean
 using StatsBase
+using CairoMakie
+
 import MultivariateStats
 using MultivariateStats: fit, FactorAnalysis, PCA
 import FactorRotations
@@ -191,8 +193,13 @@ end
     @test contains(output_pca, "5.134")
 end
 
+#Basic testset only
 @testset "Plots" begin
-    @warn "No tests implemented for Plotting functionality. Test indplot() and biplot() manually."
+    fig = @test_nowarn biplot(pca_fu)
+    @test fig isa Makie.Figure
+    @test_nowarn indplot(pca_fu)
+    # sanity: ext actually loaded
+    @test !isnothing(Base.get_extension(FactorUtils, :FactorUtilsMakieExt))
 end
 
 @testset "Lavaan Functionality" begin

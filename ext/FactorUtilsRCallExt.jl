@@ -1,4 +1,14 @@
 
+module FactorUtilsRCallExt
+
+using FactorUtils
+import FactorUtils: efa_lavaan
+
+using RCall
+using DataFrames
+using MultivariateStats: FactorAnalysis
+using LinearAlgebra: diag
+
 """
     efa_lavaan(df::DataFrame, nfactors::Int, rotation::String; scale=true)
 
@@ -28,4 +38,6 @@ function efa_lavaan(df::DataFrame, nfactors::Int, rotation::String; scale=true)
     mn = vec(mean(X; dims=1))
     fa_obj = FactorAnalysis{eltype(fac)}(mn, fac, resid)
     return FactorResults(fa_obj, X', nm, transform_fun)
+end
+
 end

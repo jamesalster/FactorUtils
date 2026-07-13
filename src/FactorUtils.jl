@@ -1,7 +1,6 @@
 
 module FactorUtils
 
-using Requires
 using Reexport
 using MultivariateStats
 using FactorRotations
@@ -24,7 +23,6 @@ include("highlighters.jl")
 include("pretty_printing.jl")
 include("datatransformations.jl")
 include("dataanalysis.jl")
-include("plots.jl")
 
 export FactorResults,
     cos2_ind,
@@ -61,12 +59,23 @@ export FactorResults,
     Oblimin,
     Infomax
 
+## Extension packages
 
-function __init__()
-    @require RCall="6f49c342-dc21-5d91-9882-a32aef131414" begin
-        include("lavaan.jl")
-        export efa_lavaan
-    end
-end
+# Makie
+function biplotarrows end
+function biplotarrows! end
+function indscatter end
+function indscatter! end
+function biplot end
+function indplot end
+
+export biplotarrows, biplotarrows!, indscatter, indscatter!
+export biplot, indplot
+
+# RCall
+function efa_lavaan end
+export efa_lavaan
+
+##
 
 end

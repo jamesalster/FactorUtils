@@ -2,6 +2,7 @@ module FactorUtilsMakieExt
 
 using FactorUtils
 using Makie
+using MultivariateStats: PCA
 import FactorUtils: biplotarrows, biplotarrows!, indscatter, indscatter!, biplot, indplot
 import FactorUtils: FactorResults, loadings, predict, variance_explained, PCA
 
