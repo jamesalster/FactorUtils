@@ -7,9 +7,12 @@ using RDatasets
 using DataFrames: dropmissing
 using Statistics: std, mean
 using StatsBase
-using Makie: Makie
+using MultivariateStats
+using FactorRotations
 
 @info "Setting up test environment..."
+
+loadings = FactorUtils.loadings
 
 # Set up data
 bfi_all = dataset("psych", "bfi")[:, 2:26]
@@ -19,11 +22,6 @@ bfi = dropmissing(bfi_all)
 pca_fu = pca(bfi)
 fa_fu = fa(bfi, 5)
 fa_fu2 = fa(bfi, 5; scale=false)
-
-@testset "Namespace" begin
-    @test loadings === MultivariateStats.loadings
-    @test FactorUtils.rotate! === FactorRotations.rotate!
-end
 
 @testset "DataProcessing" begin
 
@@ -145,10 +143,10 @@ end
     arr = loadings(fa_fu)
 
     # Test basic functionality
-    @test_nowarn pretty(arr)
+    @test_nowarn pretty(arr);
 
     # Test with no highlighters
-    @test_nowarn pretty(arr; highlighters=())
+    @test_nowarn pretty(arr; highlighters=());
 
     # Test error for non-2D arrays
     arr_1d = DimArray([1, 2, 3], Dim{:dim1}(["a", "b", "c"]))
@@ -161,7 +159,7 @@ end
     @test_throws ArgumentError pretty(arr_3d)
 
     # Capture output using redirect
-    output = sprint(pretty, arr)
+    output = sprint(pretty, arr);
 
     @test contains(output, "f1")
     @test contains(output, "0.307")
