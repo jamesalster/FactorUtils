@@ -91,6 +91,10 @@ efa2 = efa_lavaan(bfi, 5, "geomin")
 summary(loadings(efa2))
 ```
 
+# Exports
+
+`Dimensional Data` is re-exported, as are many of the most common `FactorRotations` methods - run `using FactorRotations` for the others.
+
 ## TODO
 
 Add proper tests for Makie plots.

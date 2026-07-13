@@ -38,7 +38,7 @@ function Base.show(io::IO, obj::FactorResults)
     print(io, "\n  Method: $(typeof(obj.fa))")
 end
 
-function FactorRotations.rotate(
+function rotate(
     fa::FactorResults{T}, rot::RotationMethod; kwargs...
 ) where {T}
     fa_new = deepcopy(fa)
@@ -46,19 +46,19 @@ function FactorRotations.rotate(
     return fa_new
 end
 
-function FactorRotations.rotate!(fa::FactorResults, rot::RotationMethod; kwargs...)
+function rotate!(fa::FactorResults, rot::RotationMethod; kwargs...)
     FactorRotations.rotate!(fa.fa, rot; kwargs...)
     return fa
 end
 
-function MultivariateStats.loadings(fa::FactorResults)
+function loadings(fa::FactorResults)
     loads = MultivariateStats.loadings(fa.fa)
     return DimArray(
         loads, (Dim{:variable}(fa.nm), Dim{:factor}(["f$i" for i in 1:size(fa, 2)]))
     )
 end
 
-function MultivariateStats.projection(fa::FactorResults)
+function projection(fa::FactorResults)
     proj = MultivariateStats.projection(fa.fa)
     return DimArray(
         proj, (Dim{:variable}(fa.nm), Dim{:factor}(["f$i" for i in 1:size(fa, 2)]))
@@ -127,9 +127,9 @@ function eigvecs(fa::FactorResults{<:PCA})
         eigs, (Dim{:variable}(fa.nm), Dim{:factor}(["f$i" for i in 1:size(fa, 2)]))
     )
 end
-MultivariateStats.principalvars(fa::FactorResults{<:PCA}) = eigvals(fa)
-MultivariateStats.tprincipalvar(fa::FactorResults{<:PCA}) = tprincipalvar(fa.fa)
-MultivariateStats.tresidualvar(fa::FactorResults{<:PCA}) = tresidualvar(fa.fa)
+principalvars(fa::FactorResults{<:PCA}) = eigvals(fa)
+tprincipalvar(fa::FactorResults{<:PCA}) = tprincipalvar(fa.fa)
+tresidualvar(fa::FactorResults{<:PCA}) = tresidualvar(fa.fa)
 r2(fa::FactorResults) = r2(fa.fa)
 
 # Add cos2 methods

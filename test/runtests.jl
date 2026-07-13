@@ -7,12 +7,12 @@ using RDatasets
 using DataFrames: dropmissing
 using Statistics: std, mean
 using StatsBase
-using MultivariateStats
-using FactorRotations
+import MultivariateStats
+using MultivariateStats: fit, FactorAnalysis, PCA
+import FactorRotations
+using FactorRotations: Geomin, Varimax
 
 @info "Setting up test environment..."
-
-loadings = FactorUtils.loadings
 
 # Set up data
 bfi_all = dataset("psych", "bfi")[:, 2:26]
@@ -178,7 +178,7 @@ end
     @test contains(output_fa, "Empirical Latent Variable Correlations")
     @test contains(output_fa, "1.000")
 
-    output_pca = @test_nowarn sprint(pretty, pca_fu)
+    output_pca = @test_nowarn sprint(summary, pca_fu)
     @test contains(output_pca, "Factor Loadings")
     @test contains(output_pca, "Variable")
     @test contains(output_pca, "C1")
