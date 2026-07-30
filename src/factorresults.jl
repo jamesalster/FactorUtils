@@ -42,12 +42,12 @@ function rotate(
     fa::FactorResults{T}, rot::RotationMethod; kwargs...
 ) where {T}
     fa_new = deepcopy(fa)
-    FactorRotations.rotate!(fa_new.fa, rot; kwargs...)
+    FactorRotations.rotate!(fa_new.fa, rot; randomstarts=20, maxiter1=10_000, maxiter2=1000, kwargs...)
     return fa_new
 end
 
 function rotate!(fa::FactorResults, rot::RotationMethod; kwargs...)
-    FactorRotations.rotate!(fa.fa, rot; kwargs...)
+    FactorRotations.rotate!(fa_new.fa, rot; randomstarts=20, maxiter1=10_000, maxiter2=1000, kwargs...)
     return fa
 end
 
