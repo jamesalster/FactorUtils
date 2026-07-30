@@ -66,8 +66,8 @@ function projection(fa::FactorResults)
 end
 
 """ 
-    predict(fa::FactorResults, X; apply_scaling=true)
-    predict(fa::FactorResults)
+    predict(fa::FactorResults, X; apply_scaling=true, as_df=false)
+    predict(fa::FactorResults; kwargs...)
 
 Provide the position of the rows in X according to the factor representation in `fa`.
 
@@ -78,8 +78,11 @@ NB that the dimensionality expected is observations * variables, unlike
 `MultivariateStats.predict(::FactorAnalysis, X)` which expects variables * observations.
 
 `predict()` without the array X takes the fit data for `fa` as the points to represent.
+
+Passing `as_df=true` returns a DataFrame rather than a DimArray, which can be useful for joining 
+to existing data.
 """
-function predict(fa::FactorResults, X; apply_scaling=true)
+function predict(fa::FactorResults, X; apply_scaling=true, as_df=false)
 
     #Check dims
     size(X, 2) != size(fa, 1) &&
@@ -91,9 +94,14 @@ function predict(fa::FactorResults, X; apply_scaling=true)
     X_trans = apply_scaling ? Matrix(fa.trans(X_df)) : Matrix(X_df)
 
     preds = predict(fa.fa, X_trans')'
-    return DimArray(preds, (Dim{:row}, Dim{:factor}(["f$i" for i in 1:size(fa, 2)])))
+    f_names = ["f$i" for i in 1:size(fa, 2)]
+    if as_df
+        return DataFrame(Matrix(preds), f_names)
+    else
+        return DimArray(preds, (Dim{:row}, Dim{:factor}(f_names)))
+    end
 end
-predict(fa::FactorResults) = predict(fa, fa.X'; apply_scaling=false)
+predict(fa::FactorResults; kwargs...) = predict(fa, fa.X'; apply_scaling=false, kwargs...)
 
 function reconstruct(fa::FactorResults, z)
     size(z, 2) != size(fa, 2) &&
